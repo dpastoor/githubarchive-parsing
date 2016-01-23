@@ -1,0 +1,57 @@
+---
+title: "prelim tests"
+author: "devin"
+date: "January 20, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(jsonlite)
+library(purrr)
+library(readr)
+library(ggplot2)
+```
+
+```{r}
+lines <- read_lines("../2015-01-01-15.json")
+json_lines <- lines %>% map(fromJSON) 
+jsonlite::fromJSON(lines[1])
+toJSON(fromJSON(lines[2]), pretty = TRUE)
+```
+
+
+```{r}
+get_event_type <- function(line) {
+  json_line <- jsonlite::fromJSON(line)
+  return(json_line$type)
+}
+get_json_event_type <- function(line) {
+  return(line$type)
+}
+```
+
+```{r}
+json_lines <- lines %>% map(fromJSON) 
+json_lines2 <- lines %>% lapply(fromJSON)
+for (i in seq_along(lines)) {
+  json_lines2 <- fromJSON(lines[i])
+}
+event_types <- json_lines %>% map(get_json_event_type)
+
+event_df <- data_frame(event_types = event_types %>% unlist)
+
+
+```
+
+```{r}
+event_df %>% group_by(event_types) %>% tally %>% arrange(desc(n))
+```
+
+
+
+
+
