@@ -5,3 +5,82 @@ date: "January 22, 2016"
 output: html_document
 ---
 
+```{r}
+library(readr)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(PKPDmisc)
+```
+
+```{r}
+jan <- read_csv("~/Desktop/january_stars.csv.gz") %>% select(-one_of("NA")) 
+feb <- read_csv("~/Desktop/february_stars.csv.gz")%>% select(-one_of("NA")) 
+march <- read_csv("~/Desktop/march_stars.csv.gz")%>% select(-one_of("NA")) 
+```
+
+```{r}
+head(jan)
+```
+
+```{r}
+months <- rbind(jan, feb)
+months <- rbind(months, march)
+
+temp <- head(months)
+
+
+all_repo_stars <- months %>%
+  group_by(repository) %>% 
+  tally %>% 
+  arrange(desc(n))
+```
+
+```{r}
+all_repo_stars %>% 
+  filter( n>10  , n < 200) %>% 
+  ggplot(aes(x = n)) + geom_histogram(binwidth=1, fill = "white", color = "black") +
+  theme_bw() + base_theme() +
+  labs(x = "Number of stars")
+```
+
+```{r}
+selfies <- months %>% 
+  filter(starer == repo_owner) 
+
+not_selfies <- months %>% 
+  filter(starer != repo_owner) %>%
+    group_by(repository) %>% 
+  tally %>% 
+  arrange(desc(n))
+
+head(not_selfies)
+selfies
+selfie_count <- selfies %>% group_by(repository) %>% 
+  tally %>% 
+  arrange(desc(n)) %>% 
+  rename(num_stars = n) %>% group_by(num_stars) %>% tally
+
+all_count <- all_repo_stars %>% rename(num_stars = n) %>%
+  group_by(num_stars) %>% tally
+
+self_star1 <- all_repo_stars %>%
+  filter(n ==1 ) %>% semi_join(selfies) %>%
+  select(repository)
+
+non_selfies <- all_repo_stars %>% anti_join(self_star1)
+```
+
+```{r}
+not_selfies %>%
+  filter( n < 100) %>%
+  ggplot(aes(x = n)) + geom_histogram(binwidth=1, fill = "white", color = "black") +
+  theme_bw() + base_theme() +
+  labs(x = "Number of stars")
+```
+
+```{r}
+n_distinct(non_selfies$n)
+```
+
+
