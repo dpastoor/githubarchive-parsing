@@ -4,6 +4,7 @@ def parse_pull_request_events(json_data):
     result['repo_name'] = json_data['payload']['pull_request']['base']['repo']['name']
     result['description'] = json_data['payload']['pull_request']['base']['repo']['description']
     result['language'] = json_data['payload']['pull_request']['base']['repo']['language']
+    result['stargazers_count'] = json_data['payload']['pull_request']['base']['repo']['stargazers_count']
     result['created_at'] = json_data['created_at']
     result['actor_id'] = json_data['actor']['id']
     result['actor_login'] = json_data['actor']['login']
@@ -17,6 +18,7 @@ def parse_pull_request_events(json_data):
 def parse_pull_request_review_comment_events(json_data):
     result = {'event': 'PullRequestReviewCommentEvent'}
     result['language'] = json_data['payload']['pull_request']['base']['repo']['language'] 
+    result["stargazers_count"] = json_data['payload']['pull_request']['base']['repo']["stargazers_count"] 
     result['repo_id'] = json_data['payload']['pull_request']['base']['repo']['id'] 
     result['repo_name'] = json_data['payload']['pull_request']['base']['repo']['full_name'] 
     result['created_at'] = json_data['created_at']
@@ -40,6 +42,7 @@ def parse_fork_event(json):
     result['org_id'] = None
     result['created_at'] = json['created_at']
     result['language'] = json['payload']['forkee']['language']
+    result['stargazers_count'] = json['payload']['forkee']['stargazers_count']
     if 'org' in json:
         result['org'] = json['org']['id']
         result['org_id'] = json['org']['id']     
