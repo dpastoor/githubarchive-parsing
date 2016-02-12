@@ -1,0 +1,34 @@
+---
+title: "local-network-parsing"
+author: "devin"
+date: "February 11, 2016"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(dplyr)
+```
+
+
+```{r}
+file_list <- list.files('parsed_data/', pattern = "df.csv.gz",full.names = T)
+```
+
+```{r}
+file_list
+```
+
+```{r}
+file_dfs <- lapply(file_list[1:4], function(x){
+  df <- read_csv(x)
+  # first column is NA which gives corrupt DF so need to get rid of it
+  names(df)[1] <- 'to_delete'
+  df %>% select(-to_delete)
+  }) %>% bind_rows
+```
+
+```{r}
+View(file_dfs)
+```
+
