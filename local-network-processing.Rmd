@@ -8,6 +8,7 @@ output: html_document
 ```{r}
 library(readr)
 library(dplyr)
+library(knitr)
 ```
 
 
@@ -16,19 +17,91 @@ file_list <- list.files('parsed_data/', pattern = "df.csv.gz",full.names = T)
 ```
 
 ```{r}
-file_list
+length(file_list)
 ```
 
 ```{r}
-file_dfs <- lapply(file_list[1:4], function(x){
-  df <- read_csv(x)
-  # first column is NA which gives corrupt DF so need to get rid of it
-  names(df)[1] <- 'to_delete'
-  df %>% select(-to_delete)
-  }) %>% bind_rows
+# file_dfs <- lapply(file_list, function(x){
+#   df <- read_csv(x)
+#   # first column is NA which gives corrupt DF so need to get rid of it
+#   names(df)[1] <- 'to_delete'
+#   df %>% select(-to_delete)
+#   }) %>% bind_rows
 ```
 
 ```{r}
 View(file_dfs)
+
+file_dfs$repo_id <- as.factor(file_dfs$repo_id)
+file_dfs$actor_id <- as.factor(file_dfs$actor_id)
+file_dfs$repo_name <- as.factor(file_dfs$repo_name)
+file_dfs$actor_login <- as.factor(file_dfs$actor_login)
+
 ```
+
+```{r}
+saveRDS(file_dfs, "processed_08_through_01.rds")
+```
+```{r}
+stargazers <- file_dfs %>% select(actor_login, actor_id, repo_id, repo_name)
+
+
+karthik <- stargazers %>% filter(repo_name %in% c("lightning-viz/lightning",
+                                       "scikit-learn/scikit-learn",
+                                       "gumption / Python_for_Data_Science",
+                                       "nickkneafsey / nbaOverUnder",
+                                       "BenBrostoff/draft-kings-fun",
+                                       "Maiae/NBA-Shot-Charts",
+                                       "nickb1080/nba",
+                                       "gmf05/nba"))
+dpastoor_starred <- karthik %>% distinct(repo_name) %>% mutate(actor_login == "kartik")
+```
+
+```{r}
+dpastoor_starred <- file_dfs %>% filter(actor_login == "gaearon") 
+```
+
+```{r}
+dpastoor_network <- file_dfs %>% semi_join(dpastoor_starred %>% select(repo_id))
+```
+
+```{r}
+dpastoor_network
+```
+
+```{r}
+most_similar_users <- dpastoor_network %>% group_by(actor_login) %>%
+  tally %>% arrange(desc(n))
+```
+
+```{r}
+most_similar_users_gt5stars <- most_similar_users %>%
+  filter(actor_login != "sunny-g") %>% slice(1:1000)
+```
+
+```{r}
+dpastoor_repo_network <- semi_join(file_dfs, most_similar_users_gt5stars)
+```
+
+
+```{r}
+dpastoor_repo_recs <- dpastoor_repo_network %>% 
+  group_by(repo_name) %>% 
+  tally %>% 
+  arrange(desc(n)) %>% 
+  slice(1:500)
+```
+
+
+```{r}
+final_recs <- dpastoor_repo_recs %>% 
+  anti_join(dpastoor_starred %>% select(repo_name)) %>% 
+  arrange(desc(n)) %>% slice(1:100)
+```
+
+```{r}
+write_csv(final_recs, 'recommendations/karthik_reco.csv')
+```
+
+
 
