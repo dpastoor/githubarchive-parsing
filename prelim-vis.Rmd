@@ -30,10 +30,39 @@ months <- rbind(months, march)
 temp <- head(months)
 
 
-all_repo_stars <- months %>%
-  group_by(repository) %>% 
+all_repo_stars <- march %>%
+  group_by(repository, repo_owner) %>% 
   tally %>% 
   arrange(desc(n))
+```
+
+```{r}
+more_than_ten <- all_repo_stars %>% # ~ 144000 repo owners
+  ungroup %>% filter(n > 5)
+more_than_ten %>% 
+  select(repo_owner) %>% 
+  group_by(repo_owner) %>% 
+  tally
+owners_with_mt1_repo_with_mt_ten_stars <- more_than_ten %>% 
+  select(repo_owner) %>% 
+  group_by(repo_owner) %>% 
+  tally %>%  ## ~ 28000
+  filter(n > 1) %>%## ~ 7000
+  arrange(desc(n))
+```
+
+```{r}
+more_than_five <- all_repo_stars %>% 
+  ungroup %>% filter(n > 5)
+more_than_five %>% 
+  select(repo_owner) %>% 
+  group_by(repo_owner) %>% 
+  tally
+more_than_five %>% 
+  select(repo_owner) %>% 
+  group_by(repo_owner) %>% 
+  tally %>% 
+  filter(n > 1) 
 ```
 
 ```{r}
@@ -83,4 +112,7 @@ not_selfies %>%
 n_distinct(non_selfies$n)
 ```
 
+```{r}
+write_lines()
+```
 
